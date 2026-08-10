@@ -23,6 +23,10 @@ class Project
     #[ORM\Column(length: 50)]
     private ?string $statut = null;
 
+    #[ORM\ManyToOne(inversedBy: 'projects')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Client $Client = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -60,6 +64,18 @@ class Project
     public function setStatut(string $statut): static
     {
         $this->statut = $statut;
+
+        return $this;
+    }
+
+    public function getClient(): ?Client
+    {
+        return $this->Client;
+    }
+
+    public function setClient(?Client $Client): static
+    {
+        $this->Client = $Client;
 
         return $this;
     }
