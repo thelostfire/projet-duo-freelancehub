@@ -39,6 +39,10 @@ class Client
     #[ORM\OneToMany(targetEntity: Invoice::class, mappedBy: 'Client')]
     private Collection $invoices;
 
+    #[ORM\ManyToOne(inversedBy: 'clients')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?User $owner = null;
+
     public function __construct()
     {
         $this->projects = new ArrayCollection();
@@ -154,6 +158,18 @@ class Client
                 $invoice->setClient(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getOwner(): ?User
+    {
+        return $this->owner;
+    }
+
+    public function setOwner(?User $owner): static
+    {
+        $this->owner = $owner;
 
         return $this;
     }
