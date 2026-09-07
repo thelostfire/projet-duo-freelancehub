@@ -18,19 +18,21 @@ final class ClientVoter extends Voter
     }
 
     protected function voteOnAttribute(string $attribute, mixed $subject, TokenInterface $token, ?Vote $vote = null): bool
-    {
-        $user = $token->getUser();
+{
+    $user = $token->getUser();
 
-        // if the user is anonymous, do not grant access
-        // Ici faire un check du client qui appartient bien à l'owner?
-        if (!$user instanceof User) {
-            $vote?->addReason("This user cannot access other user's clients data");
+    if (!$user instanceof User) {
+        $vote?->addReason("This user cannot access other user's clients data");
 
-            return false;
-        }
-
-        $client = $subject;
-
-        return $client->getOwner();
+        return false;
     }
+
+    if (!$subject instanceof Client) {
+        return false;
+    }
+
+    //Les instanceof vérifient bien qu'on a un User/Client pour éviter des erreurs (à voir peut-être avec des tests plus tard?)
+
+    return $subject->getOwner() === $user;
+}
 }
