@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Client;
 use App\Form\ClientType;
 use App\Repository\ClientRepository;
+use App\Security\Voter\ClientVoter;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -17,8 +18,9 @@ final class ClientController extends AbstractController
     #[Route(name: 'app_client_index', methods: ['GET'])]
     public function index(ClientRepository $clientRepository): Response
     {
+        // on ne montre que les clients du user connecté, pas tout le monde
         return $this->render('client/index.html.twig', [
-            'clients' => $clientRepository->findAll(),
+            'clients' => $clientRepository->findBy(['owner' => $this->getUser()]),
         ]);
     }
 
@@ -26,6 +28,8 @@ final class ClientController extends AbstractController
     public function new(Request $request, EntityManagerInterface $entityManager): Response
     {
         $client = new Client();
+        $client->setOwner($this->getUser()); // <-- LA correction attendue
+
         $form = $this->createForm(ClientType::class, $client);
         $form->handleRequest($request);
 
@@ -45,6 +49,8 @@ final class ClientController extends AbstractController
     #[Route('/{id}', name: 'app_client_show', methods: ['GET'])]
     public function show(Client $client): Response
     {
+        $this->denyAccessUnlessGranted(ClientVoter::ACCESS, $client);
+
         return $this->render('client/show.html.twig', [
             'client' => $client,
         ]);
@@ -53,6 +59,8 @@ final class ClientController extends AbstractController
     #[Route('/{id}/edit', name: 'app_client_edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, Client $client, EntityManagerInterface $entityManager): Response
     {
+        $this->denyAccessUnlessGranted(ClientVoter::ACCESS, $client);
+
         $form = $this->createForm(ClientType::class, $client);
         $form->handleRequest($request);
 
@@ -71,6 +79,8 @@ final class ClientController extends AbstractController
     #[Route('/{id}', name: 'app_client_delete', methods: ['POST'])]
     public function delete(Request $request, Client $client, EntityManagerInterface $entityManager): Response
     {
+        $this->denyAccessUnlessGranted(ClientVoter::ACCESS, $client);
+
         if ($this->isCsrfTokenValid('delete'.$client->getId(), $request->getPayload()->getString('_token'))) {
             $entityManager->remove($client);
             $entityManager->flush();

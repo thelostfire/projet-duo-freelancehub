@@ -53,6 +53,11 @@ security:
         - { path: ^/api/login, roles: PUBLIC_ACCESS }
         - { path: ^/api/token/refresh, roles: PUBLIC_ACCESS } # le bundle Gesdinet vérifie la validité du refresh token indépendamment, donc on le met en PUBLIC_ACCESS ici
         - { path: ^/api, roles: IS_AUTHENTICATED_FULLY }
+        - { path: ^/api/login, roles: PUBLIC_ACCESS }
+        - { path: ^/api/token/refresh, roles: PUBLIC_ACCESS } # le bundle Gesdinet vérifie la validité du refresh token indépendamment, donc on le met en PUBLIC_ACCESS ici
+        - { path: ^/client, roles: ROLE_USER }
+        - { path: ^/project, roles: ROLE_USER }
+        - { path: ^/api, roles: IS_AUTHENTICATED_FULLY }
 
 when@test:
     security:
