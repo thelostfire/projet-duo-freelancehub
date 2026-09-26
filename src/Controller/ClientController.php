@@ -28,7 +28,7 @@ final class ClientController extends AbstractController
     public function new(Request $request, EntityManagerInterface $entityManager): Response
     {
         $client = new Client();
-        $client->setOwner($this->getUser()); // <-- LA correction attendue
+        $client->setOwner($this->getUser()); 
 
         $form = $this->createForm(ClientType::class, $client);
         $form->handleRequest($request);
