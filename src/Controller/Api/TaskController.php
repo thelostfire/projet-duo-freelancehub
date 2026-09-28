@@ -56,7 +56,7 @@ class TaskController extends AbstractController
         }
 
         $task = new Task();
-        $task->setTitle($data['title'] ?? '');
+        $task->setProject($project);
         $task->setStatus($data['status'] ?? 'todo');
         $this->applyData($task, $data); // applyData() s'occupe du reste, voir plus bas
 

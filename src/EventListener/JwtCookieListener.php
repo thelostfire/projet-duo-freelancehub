@@ -46,5 +46,6 @@ class JwtCookieListener
                 ->withSameSite('lax') // protection CSRF basique, à voir si 'strict' est pas mieux
                 ->withPath('/')
         );
-    }
+    } // todo: un listener sur le logout event pour supprimer le jwt histoire qu'il traîne pas une fois la session supposément fermée
+      // a voir aussi pour la durée du cookie avec par ex ->withExpires(new \DateTimeImmutable('+15 minutes'))
 }
