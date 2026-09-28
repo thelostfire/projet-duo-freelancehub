@@ -5,6 +5,10 @@ namespace App\Entity;
 use App\Repository\TaskRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Component\Serializer\Attribute\Groups;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: TaskRepository::class)]
 class Task
@@ -12,18 +16,25 @@ class Task
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['task:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['task:read', 'task:write'])]
+    #[Assert\NotBlank(message: 'Le titre est obligatoire.')]
     private ?string $title = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[Groups(['task:read', 'task:write'])]
     private ?string $description = null;
 
     #[ORM\Column(length: 50)]
+    #[Groups(['task:read', 'task:write'])]
+    #[Assert\Choice(choices: ['todo', 'in_progress', 'done'], message: 'Statut invalide.')]
     private ?string $status = null;
 
     #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
+    #[Groups(['task:read', 'task:write'])]
     private ?\DateTime $dueDate = null;
 
     #[ORM\ManyToOne(inversedBy: 'tasks')]
@@ -83,6 +94,7 @@ class Task
         return $this;
     }
 
+    #[Groups(['task:read'])]
     public function getProject(): ?Project
     {
         return $this->Project;
