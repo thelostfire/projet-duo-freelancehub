@@ -6,6 +6,7 @@ use App\Entity\Task;
 use App\Entity\User;
 use App\Repository\TaskRepository;
 use App\Repository\ProjectRepository;
+use App\Security\Voter\ProjectVoter;
 use App\Security\Voter\TaskVoter;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -26,10 +27,30 @@ class TaskController extends AbstractController
     ) {}
 
     #[Route('', name: 'index', methods: ['GET'])]
-    public function index(TaskRepository $taskRepository, #[CurrentUser] User $user): JsonResponse
+    public function index(Request $request, TaskRepository $taskRepository, ProjectRepository $projectRepository, #[CurrentUser] User $user): JsonResponse
     {
+        $project = null;
 
-        return $this->json($taskRepository->findByOwner($user), context: self::READ_CONTEXT);
+        if($request->query->has('projectId')) { // teste l'existence de la clé (ici le projectId)
+
+            $projectId = filter_var($request->query->get('projectId'), FILTER_VALIDATE_INT); // vérifie que ce qu'on récupère puis renvoie est bien un entier avec FILTER_VALIDATE_INT dans filter_var()
+
+            if($projectId === false) {
+
+                return $this->json(['error' => 'projectId invalide'], 400);
+            }
+
+            $project = $projectRepository->find($projectId);
+
+            if($project === null) {
+
+                return $this->json(['error' => 'Project not found'], 404);
+            }
+
+            $this->denyAccessUnlessGranted(ProjectVoter::ACCESS, $project);
+        }
+
+        return $this->json($taskRepository->findByOwner($user, $project), context: self::READ_CONTEXT); // context: nous permet ici d'éviter de toujours réécrire '200, []'
     }
 
     #[Route('/{id}', name: 'show', requirements: ['id' => '\d+'] ,methods: ['GET'])] // requirements nous permet, avec un regex, de vérifier que l'id est bien juste composé de chiffres
@@ -37,11 +58,11 @@ class TaskController extends AbstractController
     {
         $this->denyAccessUnlessGranted(TaskVoter::ACCESS, $task);
 
-        return $this->json($task, context: self::READ_CONTEXT); // context: nous permet ici d'éviter de toujours réécrire '200, []' 
+        return $this->json($task, context: self::READ_CONTEXT); 
     }
 
     #[Route('', name: 'create', methods: ['POST'])]
-    public function create(Request $request, ProjectRepository $projectRepository, #[CurrentUser] User $user): JsonResponse
+    public function create(Request $request, ProjectRepository $projectRepository): JsonResponse
     {
         $data = $request->toArray(); // vérifie qu'on a bien du json qui donne un tableau
 
@@ -51,9 +72,7 @@ class TaskController extends AbstractController
             return $this->json(['error' => 'Project not found'], 404);
         }
 
-        if ($project->getClient()->getOwner() !== $this->getUser()) { // vérif' d'appartenance, à supprimer quand/si on a un projectVoter
-            return $this->json(['error' => 'Access denied'], 403);
-        }
+        $this->denyAccessUnlessGranted(ProjectVoter::ACCESS, $project);
 
         $task = new Task();
         $task->setProject($project);

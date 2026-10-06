@@ -8,6 +8,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
+use Symfony\Component\Serializer\Attribute\SerializedName;
 
 #[ORM\Entity(repositoryClass: ProjectRepository::class)]
 class Project
@@ -87,6 +88,7 @@ class Project
     }
 
     #[Groups(['project:read'])]
+    #[SerializedName('client')] // force le json à sortir 'client' sans majuscules
     public function getClient(): ?Client
     {
         return $this->Client;

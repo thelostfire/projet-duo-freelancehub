@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Project;
 use App\Entity\Task;
 use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -17,14 +18,20 @@ class TaskRepository extends ServiceEntityRepository
         parent::__construct($registry, Task::class);
     }
 
-    public function findByOwner(User $owner): array
+    public function findByOwner(User $owner, ?Project $project = null): array
     {
-        return $this->createQueryBuilder('t')
+        $qb = $this->createQueryBuilder('t')
             ->join('t.Project', 'p')
             ->join('p.Client', 'c')
             ->andWhere('c.owner = :owner')
             ->setParameter('owner', $owner)
-            ->getQuery()
-            ->getResult();
+            ->orderBy('t.id', 'ASC');
+
+        if($project !== null) {
+            $qb->andWhere('p = :project')
+                ->setParameter('project', $project);
+        }
+
+        return $qb->getQuery()->getResult();
     }
 }
